@@ -58,5 +58,61 @@ module serial_comparator_most_significant_first
   //
   // See the testbench for the output format ($display task).
 
+typedef enum bit [1:0]
+  {
+    IDLE    = 2'd0,
+    EQ      = 2'd1,
+    GREATER = 2'd2,
+    LESS    = 2'd3
+
+    // .. = 1'd1;
+  }
+  state_e;
+  state_e state, next_state;
+
+//Register states
+always_ff @( posedge clk )
+
+  if (rst)
+    state <= IDLE;
+  else
+    state <= next_state;
+
+// Logic FSM
+always_comb begin
+
+  next_state = state;
+  case (state)
+    IDLE       :   if (a == b)    next_state = EQ;
+                   else 
+                   if (a  > b)    next_state = GREATER;
+                   else
+                                  next_state = LESS;
+
+    EQ         :   if (   rst)    next_state = IDLE;
+                   else
+                   if (a == b)    next_state = EQ;
+                   else 
+                   if (a  > b)    next_state = GREATER;
+                   else
+                                  next_state = LESS;
+
+    GREATER    :   if (   rst)    next_state = IDLE;
+
+    LESS       :   if (   rst)    next_state = IDLE;
+
+  endcase
+  
+end
+
+//OUTPUT FSM (may be need output's register for remember which number is bigger in the end, A or B )
+assign a_eq_b = (next_state == (EQ | IDLE));
+assign a_greater_b = (next_state == GREATER);
+assign a_less_b = (next_state == LESS);
+ 
+
+
+
+  
 
 endmodule

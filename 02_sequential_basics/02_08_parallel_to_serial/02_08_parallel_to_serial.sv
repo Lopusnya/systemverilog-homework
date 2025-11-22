@@ -29,5 +29,65 @@ module parallel_to_serial
     // Note:
     // Check the waveform diagram in the README for better understanding.
 
+    localparam w_index = $clog2 (width); 
+
+    logic [w_index - 1:0] index = '0;
+    logic [width - 1:0]reg_parallel_in_serial;
+
+    always_ff @( posedge clk )
+        
+        if (rst)
+            index <= '0;
+        else
+        begin
+            if (parallel_valid)
+                index <= 1'd1;
+            else
+            begin
+                if (index > 1'd0) 
+                begin
+
+                    index <= index + 1'd1;
+                    
+                end
+                else
+                begin
+                    
+                    index <= '0;
+
+                end
+            end
+        end
+            
+
+    always_ff @( posedge clk )     
+
+        if (rst) 
+        begin
+            reg_parallel_in_serial <= '0;
+        end 
+        else 
+        begin
+            if (parallel_valid) 
+            begin
+
+                reg_parallel_in_serial <= parallel_data;
+
+                
+            end
+        end
+
+    //---------------------------------------------------- END BLOCK ----------------------------------------------------
+
+
+
+    //---------------------------------------------------- OUTPUT SIGNALS -----------------------------------------------
+
+    assign serial_valid  =  parallel_valid | index != w_index '(0);
+    assign  serial_data  =  parallel_valid ? parallel_data[0] : reg_parallel_in_serial [index];
+    assign         busy  =  index != w_index '(0) ? '1 : '0;
+
+
+
 
 endmodule

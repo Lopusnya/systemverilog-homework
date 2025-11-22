@@ -50,5 +50,22 @@ module serial_adder_using_logic_operations_only
   //
   // See the testbench for the output format ($display task).
 
+  logic c_in, c_out;
+
+  assign sum = a ^ b ^ c_in;
+  assign c_out = (a & b) | ((a ^ b) & c_in);
+
+  always_ff @( posedge clk )
+    
+    if (rst)
+      
+    c_in <= '0;
+
+
+    else
+
+      c_in <= c_out;
+    
+
 
 endmodule
