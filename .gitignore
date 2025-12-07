@@ -1,6 +1,7 @@
 import/
 run/
 *.hex
+*.out
 sim.out
 dump*.vcd
 log.txt
