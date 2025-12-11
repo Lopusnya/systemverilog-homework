@@ -26,6 +26,8 @@ module arithmetic_right_shift_of_N_by_S_using_concatenation
   // concatenations ({a, b}), bit repetitions ({ a { b }}), bit slices
   // and constant expressions.
 
+  assign res = {{S{a[N - 1]}}, a[N - 1: S]};
+
 
 endmodule
 
@@ -40,6 +42,12 @@ module arithmetic_right_shift_of_N_by_S_using_for_inside_always
   // You are allowed to use only "always_comb" with a "for" loop
   // that iterates through the individual bits of the input.
 
+  always_comb
+    for (int i = (N - 1); i >= 0; i--)
+      res[i] = i > (N - S - 1) ? a[N - 1] : a[i + S];
+       
+    
+
 
 endmodule
 
@@ -50,6 +58,26 @@ module arithmetic_right_shift_of_N_by_S_using_for_inside_generate
   // Task:
   // Implement a module that arithmetically shifts input exactly
   // by `S` bits to the right using "generate" and "for"
+
+  genvar i;
+
+  generate
+    
+    for (i = (N - 1); i >= 0; i--) begin
+
+      if (i > (N - S - 1)) begin
+        
+        assign res[i] = a[N - 1];
+
+      end else begin
+
+        assign res[i] = a[i + S];
+        
+      end
+      
+    end
+
+  endgenerate
 
 
 endmodule
