@@ -40,7 +40,6 @@ module signed_add_with_overflow
 
 assign sum = a + b;
 assign overflow = (a[3] & b[3] & ~sum[3]) | (~a[3] & ~b[3] & sum[3]);
-// assign overflow = ($left(a) & $left(b) & ~$left(sum)) | (~$left(a) & ~$left(b) & $left(sum));
 
 
 endmodule

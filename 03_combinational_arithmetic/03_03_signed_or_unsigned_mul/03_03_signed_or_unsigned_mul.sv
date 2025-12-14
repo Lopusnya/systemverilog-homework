@@ -53,15 +53,15 @@ module signed_or_unsigned_mul
   output [2 * n - 1:0] res
 );
 
-  logic [2 * n - 1:0] pre_res, pre_res_2, pre_res_3;
+  logic [2 * n - 1:0] pre_res, pre_res_inv;
   logic [    n - 1:0] inv_a, inv_b;
 
   always_comb 
   begin
 
-    inv_a = ((~a) + 1'b1);
-    inv_b = ((~b) + 1'b1);
-    pre_res_2 = inv_a * inv_b;
+    inv_a = ((~a) + 1'b1); // not signed a
+    inv_b = ((~b) + 1'b1); // not signed b
+    pre_res_inv = inv_a * inv_b; // not signed a * not signed b
 
 
     if (signed_mul) 
@@ -70,7 +70,7 @@ module signed_or_unsigned_mul
         if (a[3] & b[3]) 
         begin
 
-          pre_res = pre_res_2;
+          pre_res = pre_res_inv;
 
         end 
         else 
