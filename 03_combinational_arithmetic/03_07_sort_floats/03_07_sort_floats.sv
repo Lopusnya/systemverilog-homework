@@ -86,5 +86,56 @@ module sort_three_floats (
     // The FLEN parameter is defined in the "import/preprocessed/cvw/config-shared.vh" file
     // and usually equal to the bit width of the double-precision floating-point number, FP64, 64 bits.
 
+    logic u0_less_or_equal_u1, u1_less_or_equal_u2, u0_less_or_equal_u2;
+    logic err_0_1, err_0_2, err_1_2;
+
+    f_less_or_equal i_floe_0_1
+    (
+        .a   ( unsorted [0]        ), //a
+        .b   ( unsorted [1]        ), //b
+        .res ( u0_less_or_equal_u1 ),
+        .err ( err_0_1             )
+    );
+
+    f_less_or_equal i_floe_1_2
+    (
+        .a   ( unsorted [1]        ), //b
+        .b   ( unsorted [2]        ), //c
+        .res ( u1_less_or_equal_u2 ),
+        .err ( err_1_2             )
+    );
+
+    f_less_or_equal i_floe_0_2
+    (
+        .a   ( unsorted [0]        ), //a
+        .b   ( unsorted [2]        ), //c
+        .res ( u0_less_or_equal_u2 ),
+        .err ( err_0_2             )
+    );
+
+    // a<b b<c, a<b<c
+    // a<b b>c, a?c -> 1) a<c<b 2) c<a<b
+    // a>b b<c, a?c -> 1) b<a<c 2) b<c<a
+    // a>b b>c, c<b<a
+
+
+    logic [0:2][FLEN - 1:0] mux_out;
+    always_comb
+    begin
+
+        case ({u0_less_or_equal_u2,u1_less_or_equal_u2,u0_less_or_equal_u1}) // {a?c, b?c, a?b}
+            3'b?11     :                            mux_out      =  unsorted                                  ; // a<b<c
+            3'b101     : {mux_out [0], mux_out [1], mux_out [2]} = {unsorted [0], unsorted [2], unsorted [1]} ; // a<c<b
+            3'b001     : {mux_out [0], mux_out [1], mux_out [2]} = {unsorted [2], unsorted [0], unsorted [1]} ; // c<a<b
+            3'b110     : {mux_out [0], mux_out [1], mux_out [2]} = {unsorted [1], unsorted [0], unsorted [2]} ; // b<a<c
+            3'b010     : {mux_out [0], mux_out [1], mux_out [2]} = {unsorted [1], unsorted [2], unsorted [0]} ; // b<c<a
+            3'b000     : {mux_out [0], mux_out [1], mux_out [2]} = {unsorted [2], unsorted [1], unsorted [0]} ; // c<b<a
+            default    :                            mux_out      =  unsorted                                  ;
+        endcase
+    end
+
+
+    assign sorted = mux_out;
+    assign err = |{err_0_2, err_1_2, err_0_1}; // Хотя бы один err
 
 endmodule
