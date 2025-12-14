@@ -9,3 +9,4 @@ mock_interview*.pdf
 /.vscode/
 synth_results.txt
 synth_log.txt
+*.out
