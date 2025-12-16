@@ -123,13 +123,13 @@ module sort_three_floats (
     always_comb
     begin
 
-        case ({u0_less_or_equal_u2,u1_less_or_equal_u2,u0_less_or_equal_u1}) // {a?c, b?c, a?b}
+        casez ({u0_less_or_equal_u2,u1_less_or_equal_u2,u0_less_or_equal_u1}) // {a?c, b?c, a?b}
             3'b?11     :                            mux_out      =  unsorted                                  ; // a<b<c
             3'b101     : {mux_out [0], mux_out [1], mux_out [2]} = {unsorted [0], unsorted [2], unsorted [1]} ; // a<c<b
             3'b001     : {mux_out [0], mux_out [1], mux_out [2]} = {unsorted [2], unsorted [0], unsorted [1]} ; // c<a<b
             3'b110     : {mux_out [0], mux_out [1], mux_out [2]} = {unsorted [1], unsorted [0], unsorted [2]} ; // b<a<c
             3'b010     : {mux_out [0], mux_out [1], mux_out [2]} = {unsorted [1], unsorted [2], unsorted [0]} ; // b<c<a
-            3'b000     : {mux_out [0], mux_out [1], mux_out [2]} = {unsorted [2], unsorted [1], unsorted [0]} ; // c<b<a
+            3'b?00     : {mux_out [0], mux_out [1], mux_out [2]} = {unsorted [2], unsorted [1], unsorted [0]} ; // c<b<a
             default    :                            mux_out      =  unsorted                                  ;
         endcase
     end
