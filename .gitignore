@@ -10,3 +10,4 @@ mock_interview*.pdf
 synth_results.txt
 synth_log.txt
 *.out
+*.zip
