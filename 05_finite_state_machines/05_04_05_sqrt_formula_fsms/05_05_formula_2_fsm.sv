@@ -34,5 +34,130 @@ module formula_2_fsm
     // FPGA-Systems Magazine :: FSM :: Issue ALFA (state_0)
     // You can download this issue from https://fpga-systems.ru/fsm
 
+    enum logic [2:0]
+    {
+        start_state = 3'd0,
+        wait_c = 3'd1,
+        wait_sum_b_c = 3'd2,
+        wait_b_c = 3'd3,
+        wait_sum_a_b_c = 3'd4,
+        wait_a_b_c = 3'd5
+        // data_out = 3'd6
+    }
+    state, next_state;
+
+    always_ff @( posedge clk ) 
+        if(rst)
+            state <= start_state;
+        else
+            state <= next_state;
+
+    // logic [31:0] reg_a, reg_b;
+    // always_ff @( posedge clk )
+    //     if(rst)
+    //     begin
+    //         reg_a <= '0;
+    //         reg_b <= '0;
+    //     end
+    //     else
+    //     begin
+    //         if(arg_vld)
+    //             reg_a <= a;
+    //             reg_b <= b;
+    //     end
+
+    always_comb 
+    begin
+
+        next_state = state;
+        isqrt_x_vld = '0;
+        isqrt_x = 'x;
+
+        case (state)
+            start_state:
+                begin
+                    isqrt_x = c;
+
+                    if(arg_vld)
+                        begin
+                            isqrt_x_vld = '1;
+                            next_state = wait_c;
+                        end   
+                end
+
+            wait_c:
+                begin
+                    if(isqrt_y_vld)
+                        next_state = wait_sum_b_c;
+                end
+
+            wait_sum_b_c:
+                begin
+                    isqrt_x = b + res;
+                    if(sub_sum_vld)
+                        begin
+                            isqrt_x_vld = '1;
+                            next_state = wait_b_c;
+                        end 
+                end
+
+            wait_b_c:
+                begin
+                    if(isqrt_y_vld)
+                        next_state = wait_sum_a_b_c;
+                end
+
+            wait_sum_a_b_c:
+                begin
+                    isqrt_x = a + res;
+                    if(sub_sum_vld)
+                        begin
+                            isqrt_x_vld = '1;
+                            next_state = wait_a_b_c;
+                        end
+                end
+
+            wait_a_b_c:
+                begin
+                    if(isqrt_y_vld)
+                        next_state = start_state;
+                end
+            
+            // data_out:
+            //     begin
+            //         if(sub_sum_vld)
+            //             next_state = data_out;
+            //     end
+
+        endcase
+        
+    end
+
+    logic sub_sum_vld;
+    always_ff @ (posedge clk)
+        if (rst)
+            res_vld <= '0;
+        else
+            res_vld <= (state == wait_a_b_c & isqrt_y_vld);
+
+    always_ff @ (posedge clk)
+        if (state == start_state)
+            res <= '0;
+        else if (isqrt_y_vld && state == wait_c)
+            begin
+                res <= 32' (isqrt_y);
+                sub_sum_vld <= '1;
+            end
+        else if (isqrt_y_vld && state == wait_b_c)
+            begin
+                res <= 32' (isqrt_y);
+                sub_sum_vld <= '1;
+            end
+        else if (isqrt_y_vld && state == wait_a_b_c)
+            begin
+                res <= 32' (isqrt_y);
+                sub_sum_vld <= '0;
+            end
+            
 
 endmodule
