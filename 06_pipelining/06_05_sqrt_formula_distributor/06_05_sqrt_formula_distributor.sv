@@ -4,16 +4,16 @@ module sqrt_formula_distributor
               impl    = 1
 )
 (
-    input         clk,
-    input         rst,
+    input  logic        clk,
+    input  logic        rst,
 
-    input         arg_vld,
-    input  [31:0] a,
-    input  [31:0] b,
-    input  [31:0] c,
+    input  logic        arg_vld,
+    input  logic [31:0] a,
+    input  logic [31:0] b,
+    input  logic [31:0] c,
 
-    output        res_vld,
-    output [31:0] res
+    output logic        res_vld,
+    output logic [31:0] res
 );
 
     // Task:
@@ -43,5 +43,113 @@ module sqrt_formula_distributor
     // Instantiate sufficient number of "formula_1_impl_1_top", "formula_1_impl_2_top",
     // or "formula_2_top" modules to achieve desired performance.
 
+localparam N = 64; 
 
+    logic [$clog2(N)-1:0] cnt_in;
+
+    always_ff @(posedge clk) begin
+        if (rst)
+            cnt_in <= '0;
+        else 
+            if (arg_vld) 
+                cnt_in <= cnt_in + 1'b1;
+    end
+
+    logic [N-1:0] inst_vld    ;
+    logic [N-1:0] inst_res_vld;
+    logic [31:0 ] inst_res [N];
+
+    logic [31:0 ] reg_a    [N];
+    logic [31:0 ] reg_b    [N];
+    logic [31:0 ] reg_c    [N];
+    genvar i;
+    generate
+        for (i = 0; i < N; i++) begin : gen_calc
+
+            always_ff @( posedge clk) begin
+              if(rst) begin
+                inst_vld[i] <= 1'b0;
+              end else begin
+                inst_vld[i] <= (arg_vld && (cnt_in == i));
+              end
+            end 
+
+            always_ff @(posedge clk) begin
+                if (rst)
+                    reg_a[i] <= '0;
+                else 
+                    if (arg_vld && (cnt_in == i)) 
+                        reg_a[i] <= a;
+            end
+
+            always_ff @(posedge clk) begin
+                if (rst)
+                    reg_b[i] <= '0;
+                else 
+                    if (arg_vld && (cnt_in == i)) 
+                        reg_b[i] <= b;
+            end
+
+            always_ff @(posedge clk) begin
+                if (rst)
+                    reg_c[i] <= '0;
+                else 
+                    if (arg_vld && (cnt_in == i)) 
+                        reg_c[i] <= c;
+            end
+
+            if (formula == 1) begin : f1
+                if (impl == 1) begin : f1_i1
+
+                    formula_1_impl_1_top inst 
+                    (
+                        .clk(clk),
+                        .rst(rst), 
+                        .arg_vld(inst_vld[i]), 
+                        .a(reg_a[i]), 
+                        .b(reg_b[i]), 
+                        .c(reg_c[i]), 
+                        .res_vld(inst_res_vld[i]), 
+                        .res(inst_res[i])
+                    );
+
+                end else begin : f1_i2
+                    formula_1_impl_2_top inst 
+                    (
+                        .clk(clk), 
+                        .rst(rst), 
+                        .arg_vld(inst_vld[i]), 
+                        .a(reg_a[i]), 
+                        .b(reg_b[i]), 
+                        .c(reg_c[i]), 
+                        .res_vld(inst_res_vld[i]), 
+                        .res(inst_res[i])
+                    );
+                end
+            end else begin : f2
+                formula_2_top inst 
+                (
+                    .clk(clk),
+                    .rst(rst),
+                    .arg_vld(inst_vld[i]),
+                    .a(reg_a[i]), 
+                    .b(reg_b[i]), 
+                    .c(reg_c[i]), 
+                    .res_vld(inst_res_vld[i]), 
+                    .res(inst_res[i])
+                );
+            end
+        end
+    endgenerate
+
+    always_comb begin
+        res = '0;
+        for(int unsigned i = 0; i < N; i++) begin
+            if(inst_res_vld[i]) begin
+            res = inst_res[i];
+            end
+        end
+    end
+    assign res_vld = |inst_res_vld;
+    
 endmodule

@@ -42,5 +42,57 @@ module formula_1_pipe
     // FPGA-Systems Magazine :: FSM :: Issue ALFA (state_0)
     // You can download this issue from https://fpga-systems.ru/fsm#state_0
 
+    logic [15:0] isqrt_y_1, isqrt_y_2, isqrt_y_3;
+    logic y_vld;
+
+    isqrt # (.n_pipe_stages (4)) isqrt_1
+    (
+        .clk   ( clk         ),
+        .rst   ( rst         ),
+        .x_vld ( arg_vld     ),
+        .x     ( a           ),
+        .y_vld ( y_vld       ),
+        .y     ( isqrt_y_1   )
+    );
+
+    isqrt # (.n_pipe_stages (4)) isqrt_2
+    (
+        .clk   ( clk         ),
+        .rst   ( rst         ),
+        .x_vld ( arg_vld     ),
+        .x     ( b           ),
+        // .y_vld (             ),
+        .y     ( isqrt_y_2   )
+    );
+
+    isqrt # (.n_pipe_stages (4)) isqrt_3
+    (
+        .clk   ( clk         ),
+        .rst   ( rst         ),
+        .x_vld ( arg_vld     ),
+        .x     ( c           ),
+        // .y_vld (             ),
+        .y     ( isqrt_y_3   )
+    );
+
+    logic res_vld_r;
+    logic [31:0] res_r;
+    always_ff @( posedge clk ) 
+        if (rst)
+            res_vld_r <= '0;
+        else
+            res_vld_r <= y_vld;
+
+    always_ff @( posedge clk ) 
+        if (rst)
+            res_r <= '0;
+        else
+            if(y_vld)
+                res_r <= 32'(isqrt_y_1) + 32'(isqrt_y_2) + 32'(isqrt_y_3);
+
+    assign res = res_r;
+    assign res_vld = res_vld_r;
+
+
 
 endmodule

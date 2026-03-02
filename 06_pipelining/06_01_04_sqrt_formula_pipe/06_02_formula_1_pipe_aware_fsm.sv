@@ -61,5 +61,75 @@ module formula_1_pipe_aware_fsm
     // FPGA-Systems Magazine :: FSM :: Issue ALFA (state_0)
     // You can download this issue from https://fpga-systems.ru/fsm#state_0
 
+    enum logic [1:0]
+    {
+        IDLE    = 2'b00,
+        INPUT_B = 2'b01,
+        INPUT_C = 2'b10
+    }
+     state, next_state;
+
+    //Next state logic ff
+    always_ff @( posedge clk )
+        if (rst)
+            state <= IDLE;
+        else
+            state <= next_state;
+    
+    always_comb 
+    begin
+        next_state = state;
+        isqrt_x_vld = 'x;
+        isqrt_x = 'x;
+
+        case (state)
+            IDLE    :
+            begin
+                isqrt_x = a;
+                
+                if(arg_vld)
+                    begin
+                        next_state = INPUT_B;
+                        isqrt_x_vld = '1;
+                    end
+            end
+            INPUT_B :
+            begin
+                isqrt_x = b;
+                isqrt_x_vld = '1;
+                next_state = INPUT_C;
+            end
+            
+            INPUT_C : 
+            begin
+                isqrt_x = c;
+                isqrt_x_vld = '1;
+                next_state = IDLE;
+            end
+        endcase
+    end
+
+    logic [31:0] isqrt_sum_reg;
+    always_ff @(posedge clk)
+        if (rst)
+            isqrt_sum_reg <= '0;
+        else
+            if (isqrt_y_vld)
+                isqrt_sum_reg <= 32'(isqrt_y) + isqrt_sum_reg;
+            else
+                isqrt_sum_reg <= '0;
+
+    logic [1:0] cnt_vld;
+    always_ff @(posedge clk)
+        if (rst)
+            cnt_vld <= '0;
+        else
+            if(isqrt_y_vld)
+                cnt_vld <= cnt_vld + 2'b1;
+            else
+                cnt_vld <= '0;
+    
+    assign res = isqrt_sum_reg;
+    assign res_vld = (cnt_vld == 2'd3);
 
 endmodule
