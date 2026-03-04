@@ -41,7 +41,7 @@ module formula_2_pipe_using_fifos
     // FPGA-Systems Magazine :: FSM :: Issue ALFA (state_0)
     // You can download this issue from https://fpga-systems.ru/fsm
 
-    localparam N = 4;
+    localparam N = 32;
 
     wire [15: 0] isqrt_y_1, isqrt_y_2, isqrt_y_3;
     wire isqrt_y_1_vld, isqrt_y_2_vld, isqrt_y_3_vld;
