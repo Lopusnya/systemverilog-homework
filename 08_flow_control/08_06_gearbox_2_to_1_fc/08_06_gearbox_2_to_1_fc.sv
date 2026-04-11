@@ -26,5 +26,23 @@ module gearbox_2_to_1_fc
     //
     // The module must use signals valid-ready for transfer tokens.
 
+    logic               half_vld;
+    logic [width - 1:0] half;
+
+    always_ff @ (posedge clk or posedge rst)
+        if (rst)
+        half_vld <= '0;
+        else if (down_valid & down_ready)
+        half_vld <= ~ half_vld;
+
+    assign down_valid  = up_valid;
+
+    assign down_data
+        = half_vld ?
+            up_data [    0 +: width]
+        : up_data [width +: width];
+
+    assign up_ready = half_vld & down_ready;
+
 
 endmodule

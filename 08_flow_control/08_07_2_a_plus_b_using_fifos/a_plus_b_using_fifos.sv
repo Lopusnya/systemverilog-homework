@@ -81,6 +81,16 @@ module a_plus_b_using_fifos
 
     //------------------------------------------------------------------------
 
+        // Логика суммы: валидна, когда есть данные в обоих входных FIFO
+    wire               sum_up_valid = a_down_valid & b_down_valid;
+    wire               sum_up_ready;
+    wire [width - 1:0] sum_up_data  = a_down_data + b_down_data;
+
+    // Читаем из входных FIFO только тогда, когда оба готовы отдать, 
+    // а следующее FIFO готово принять результат
+    assign a_down_ready = sum_up_valid & sum_up_ready;
+    assign b_down_ready = sum_up_valid & sum_up_ready;
+
     ff_fifo_wrapped_in_valid_ready
     # (.width (width), .depth (depth))
     fifo_sum
